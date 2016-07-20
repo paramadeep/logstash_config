@@ -1,0 +1,3 @@
+time-format %H:%M:%S
+date-format %d/%b/%Y
+log-format %h %^[%d:%t %^] %^ "%r" to: %v:%^ response_times: %T:%^  upstream_response_bytes %b %s %^ "%R" "%u"
