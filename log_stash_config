@@ -1,33 +1,34 @@
 input {
   file {
-    path => "/Users/D/work/satyam/analyse_log/nginx.access.log"
+    path => "/Users/D/work/satyam/analyse_log/nginx.access1.log"
       start_position => beginning
+      sincedb_path => "/dev/null"
   }
 }
 filter {
   grok {
-    match => { "message" => "%{URIHOST:client_ip} - - \[%{DATA:timestamp}\]+ %{URIHOST:servername} \"%{WORD:verb} %{URIPATHPARAM:request} HTTP/%{NUMBER:httpversion}\" to: %{DATA} response_times: %{DATA:response_time}:%{DATA:upstream_response_time}  upstream_response_bytes %{DATA:response_size} %{DATA:status} %{DATA:body_size} %{QS:referrer} %{QS:agent} %{QS:base_id} %{WORD:cache_status} %{GREEDYDATA:reference_id}"}
-    remove_field => ["message"]
+    match => { "message" => "%{URIHOST:client_ip} - - \[%{DATA:timestamp}\]+ %{URIHOST:servername} \"%{WORD:verb} %{URIPATHPARAM:request} HTTP/%{NUMBER:httpversion}\" to: %{DATA:upstream} response_times: %{DATA:response_time}:%{DATA:upstream_response_time}  upstream_response_bytes %{DATA:response_size} %{DATA:status} %{DATA:body_size} %{QS:referrer} %{QS:agent}"}
   }
   useragent {
     source => "agent"
       target => "useragent"
       remove_field => ["agent"]
   }
+
   metrics {
     meter => "documents"
       add_tag => "metric"
-      flush_interval => 60
   }
 }
 output {
   elasticsearch {
-    index => "kabali_night"
+    index => "kabali"
   }
+
   if "metric" in [tags] {
     stdout {
       codec => line {
-        format => "1m rate: %{documents.rate_1m} ( %{documents.count} )"
+        format => "1m rate: %{[documents][rate_1m]} ( %{[documents][count]} )"
       }
     }
   }
